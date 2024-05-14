@@ -9,6 +9,10 @@ export default class Slide {
     };
   }
 
+  transition(active) {
+    this.slide.style.transition = active ? "transform .3s" : "";
+  }
+
   //Evento que será executado quando o usuário clicar e mover a imagem
   //Verifica se o tipo de evento é feito pelo computador ou celular e chama a onMove
   onStart(event) {
@@ -22,6 +26,7 @@ export default class Slide {
       moveType = "touchmove";
     }
     this.wraper.addEventListener(moveType, this.onMove);
+    this.transition(false);
   }
 
   //Evento que é executado sempre que o usuário movimentar o mouse
@@ -52,6 +57,18 @@ export default class Slide {
     const movetype = event.type === "mouseup" ? "mousemove" : "touchmove";
     this.wraper.removeEventListener(movetype, this.onMove);
     this.dist.finalPosition = this.dist.movePosition;
+    this.transition(true);
+    this.changeSlideOnEnd();
+  }
+
+  changeSlideOnEnd() {
+    if (this.dist.movement > 120 && this.index.next !== undefined) {
+      this.activeNextSlide();
+    } else if (this.dist.movement < -120 && this.index.prev !== undefined) {
+      this.activePrevSlide();
+    } else {
+      this.changeSlide(this.index.active);
+    }
   }
 
   //Calcula e coloca a imagem exatamente no centro da tela
@@ -71,7 +88,7 @@ export default class Slide {
     });
   }
 
-  //Cria um objeto index que contem o index da imagem atual, anterior e próxima
+  //Cria e define um objeto index que contem o index da imagem atual, anterior e próxima
   slidesIndexNav(index) {
     const last = this.slideArray.length - 1;
     this.index = {
@@ -89,6 +106,18 @@ export default class Slide {
     this.dist.finalPosition = activeSlide.position;
   }
 
+  activePrevSlide() {
+    if (this.index.prev !== undefined) {
+      this.changeSlide(this.index.prev);
+    }
+  }
+
+  activeNextSlide() {
+    if (this.index.next !== undefined) {
+      this.changeSlide(this.index.next);
+    }
+  }
+
   bindEvents() {
     this.onStart = this.onStart.bind(this);
     this.onMove = this.onMove.bind(this);
@@ -104,6 +133,7 @@ export default class Slide {
 
   init() {
     this.bindEvents();
+    this.transition(true);
     this.addSlideEvents();
     this.slidesConfig();
     return this;
